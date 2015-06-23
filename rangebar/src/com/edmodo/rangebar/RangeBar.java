@@ -83,6 +83,7 @@ public class RangeBar extends View {
     private Thumb mRightThumb;
     private Bar mBar;
     private ConnectingLine mConnectingLine;
+    private ConnectingLine mConnectingLine2;
 
     private RangeBar.OnRangeBarChangeListener mListener;
     private int mLeftIndex = 0;
