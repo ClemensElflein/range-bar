@@ -76,6 +76,8 @@ public class RangeBar extends View {
     // setThumbIndices() is called, to correspond with intended usage
     private boolean mFirstSetTickCount = true;
 
+    private boolean mInverted = false;
+
     private int mDefaultWidth = 500;
     private int mDefaultHeight = 100;
 
@@ -83,7 +85,6 @@ public class RangeBar extends View {
     private Thumb mRightThumb;
     private Bar mBar;
     private ConnectingLine mConnectingLine;
-    private ConnectingLine mConnectingLine2;
 
     private RangeBar.OnRangeBarChangeListener mListener;
     private int mLeftIndex = 0;
@@ -133,6 +134,8 @@ public class RangeBar extends View {
 
         bundle.putBoolean("FIRST_SET_TICK_COUNT", mFirstSetTickCount);
 
+        bundle.putBoolean("INVERTED", mInverted);
+
         return bundle;
     }
 
@@ -160,6 +163,8 @@ public class RangeBar extends View {
             mLeftIndex = bundle.getInt("LEFT_INDEX");
             mRightIndex = bundle.getInt("RIGHT_INDEX");
             mFirstSetTickCount = bundle.getBoolean("FIRST_SET_TICK_COUNT");
+
+            mInverted  = bundle.getBoolean("INVERTED");
 
             setThumbIndices(mLeftIndex, mRightIndex);
 
@@ -265,8 +270,12 @@ public class RangeBar extends View {
 
         mBar.draw(canvas);
 
-        mConnectingLine.draw(canvas, mLeftThumb, mRightThumb);
-
+        if(mInverted) {
+            mConnectingLine.draw(canvas, 0, mLeftThumb);
+            mConnectingLine.draw(canvas, getRight(), mRightThumb);
+        } else {
+            mConnectingLine.draw(canvas, mLeftThumb, mRightThumb);
+        }
         mLeftThumb.draw(canvas);
         mRightThumb.draw(canvas);
 
@@ -563,17 +572,19 @@ public class RangeBar extends View {
             mBarWeight = ta.getDimension(R.styleable.RangeBar_barWeight, DEFAULT_BAR_WEIGHT_PX);
             mBarColor = ta.getColor(R.styleable.RangeBar_barColor, DEFAULT_BAR_COLOR);
             mConnectingLineWeight = ta.getDimension(R.styleable.RangeBar_connectingLineWeight,
-                                                    DEFAULT_CONNECTING_LINE_WEIGHT_PX);
+                    DEFAULT_CONNECTING_LINE_WEIGHT_PX);
             mConnectingLineColor = ta.getColor(R.styleable.RangeBar_connectingLineColor,
-                                               DEFAULT_CONNECTING_LINE_COLOR);
+                    DEFAULT_CONNECTING_LINE_COLOR);
             mThumbRadiusDP = ta.getDimension(R.styleable.RangeBar_thumbRadius, DEFAULT_THUMB_RADIUS_DP);
             mThumbImageNormal = ta.getResourceId(R.styleable.RangeBar_thumbImageNormal,
-                                                 DEFAULT_THUMB_IMAGE_NORMAL);
+                    DEFAULT_THUMB_IMAGE_NORMAL);
             mThumbImagePressed = ta.getResourceId(R.styleable.RangeBar_thumbImagePressed,
                                                   DEFAULT_THUMB_IMAGE_PRESSED);
             mThumbColorNormal = ta.getColor(R.styleable.RangeBar_thumbColorNormal, DEFAULT_THUMB_COLOR_NORMAL);
             mThumbColorPressed = ta.getColor(R.styleable.RangeBar_thumbColorPressed,
                                              DEFAULT_THUMB_COLOR_PRESSED);
+
+            mInverted = ta.getBoolean(R.styleable.RangeBar_inverted, false);
 
         } finally {
 
@@ -608,9 +619,9 @@ public class RangeBar extends View {
     private void createConnectingLine() {
 
         mConnectingLine = new ConnectingLine(getContext(),
-                                             getYPos(),
-                                             mConnectingLineWeight,
-                                             mConnectingLineColor);
+                getYPos(),
+                mConnectingLineWeight,
+                mConnectingLineColor);
         invalidate();
     }
 

@@ -62,4 +62,11 @@ class ConnectingLine {
     void draw(Canvas canvas, Thumb leftThumb, Thumb rightThumb) {
         canvas.drawLine(leftThumb.getX(), mY, rightThumb.getX(), mY, mPaint);
     }
+
+    void draw(Canvas canvas, float x, Thumb thumb) {
+        float x2 = thumb.getX();
+        float start = Math.min(x,x2);
+        float end = Math.max(x,x2);
+        canvas.drawLine(start, mY, end, mY, mPaint);
+    }
 }
