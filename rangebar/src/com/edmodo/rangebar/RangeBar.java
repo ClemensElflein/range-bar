@@ -284,10 +284,14 @@ public class RangeBar extends View {
         mBar.draw(canvas);
 
         if(mInverted && mIsRange) {
-            mConnectingLine.draw(canvas, 0, mLeftThumb);
-            mConnectingLine.draw(canvas, getRight(), mRightThumb);
+            mConnectingLine.draw(canvas, getLeft(), mLeftThumb);
+            mConnectingLine.draw(canvas, mBar.getRightX(), mRightThumb);
         } else {
-            mConnectingLine.draw(canvas, mLeftThumb, mRightThumb);
+            if(mIsRange) {
+                mConnectingLine.draw(canvas, mLeftThumb, mRightThumb);
+            } else {
+                mConnectingLine.draw(canvas, getLeft(), mRightThumb);
+            }
         }
         mLeftThumb.draw(canvas);
         mRightThumb.draw(canvas);

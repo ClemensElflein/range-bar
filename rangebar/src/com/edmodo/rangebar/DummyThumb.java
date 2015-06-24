@@ -18,16 +18,6 @@ public class DummyThumb extends Thumb {
     }
 
     @Override
-    float getHalfWidth() {
-        return 0;
-    }
-
-    @Override
-    float getHalfHeight() {
-        return 0;
-    }
-
-    @Override
     void setX(float x) {
 
     }
