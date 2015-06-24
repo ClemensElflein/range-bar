@@ -77,6 +77,7 @@ public class RangeBar extends View {
     private boolean mFirstSetTickCount = true;
 
     private boolean mInverted = false;
+    private boolean mIsRange = true;
 
     private int mDefaultWidth = 500;
     private int mDefaultHeight = 100;
@@ -135,6 +136,7 @@ public class RangeBar extends View {
         bundle.putBoolean("FIRST_SET_TICK_COUNT", mFirstSetTickCount);
 
         bundle.putBoolean("INVERTED", mInverted);
+        bundle.putBoolean("IS_RANGE", mIsRange);
 
         return bundle;
     }
@@ -165,6 +167,7 @@ public class RangeBar extends View {
             mFirstSetTickCount = bundle.getBoolean("FIRST_SET_TICK_COUNT");
 
             mInverted  = bundle.getBoolean("INVERTED");
+            mIsRange  = bundle.getBoolean("IS_RANGE");
 
             setThumbIndices(mLeftIndex, mRightIndex);
 
@@ -220,13 +223,23 @@ public class RangeBar extends View {
 
         // Create the two thumb objects.
         final float yPos = h / 2f;
-        mLeftThumb = new Thumb(ctx,
-                               yPos,
-                               mThumbColorNormal,
-                               mThumbColorPressed,
-                               mThumbRadiusDP,
-                               mThumbImageNormal,
-                               mThumbImagePressed);
+        if(mIsRange) {
+            mLeftThumb = new Thumb(ctx,
+                    yPos,
+                    mThumbColorNormal,
+                    mThumbColorPressed,
+                    mThumbRadiusDP,
+                    mThumbImageNormal,
+                    mThumbImagePressed);
+        } else {
+            mLeftThumb = new DummyThumb(ctx,
+                    yPos,
+                    mThumbColorNormal,
+                    mThumbColorPressed,
+                    mThumbRadiusDP,
+                    mThumbImageNormal,
+                    mThumbImagePressed);
+        }
         mRightThumb = new Thumb(ctx,
                                 yPos,
                                 mThumbColorNormal,
@@ -270,7 +283,7 @@ public class RangeBar extends View {
 
         mBar.draw(canvas);
 
-        if(mInverted) {
+        if(mInverted && mIsRange) {
             mConnectingLine.draw(canvas, 0, mLeftThumb);
             mConnectingLine.draw(canvas, getRight(), mRightThumb);
         } else {
@@ -585,6 +598,7 @@ public class RangeBar extends View {
                                              DEFAULT_THUMB_COLOR_PRESSED);
 
             mInverted = ta.getBoolean(R.styleable.RangeBar_inverted, false);
+            mIsRange = ta.getBoolean(R.styleable.RangeBar_isRange, true);
 
         } finally {
 
@@ -635,13 +649,23 @@ public class RangeBar extends View {
         Context ctx = getContext();
         float yPos = getYPos();
 
-        mLeftThumb = new Thumb(ctx,
-                               yPos,
-                               mThumbColorNormal,
-                               mThumbColorPressed,
-                               mThumbRadiusDP,
-                               mThumbImageNormal,
-                               mThumbImagePressed);
+        if(mIsRange) {
+            mLeftThumb = new Thumb(ctx,
+                    yPos,
+                    mThumbColorNormal,
+                    mThumbColorPressed,
+                    mThumbRadiusDP,
+                    mThumbImageNormal,
+                    mThumbImagePressed);
+        } else {
+            mLeftThumb = new DummyThumb(ctx,
+                    yPos,
+                    mThumbColorNormal,
+                    mThumbColorPressed,
+                    mThumbRadiusDP,
+                    mThumbImageNormal,
+                    mThumbImagePressed);
+        }
         mRightThumb = new Thumb(ctx,
                                 yPos,
                                 mThumbColorNormal,

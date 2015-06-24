@@ -31,6 +31,7 @@
             android:layout_marginBottom="50dp"
             android:layout_marginTop="50dp"
             custom:inverted="true"
+            custom:isRange="false"
             custom:tickCount="7" />
 
         <LinearLayout

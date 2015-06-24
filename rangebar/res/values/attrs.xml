@@ -13,6 +13,7 @@
         <attr name="thumbColorNormal" format="reference|color"/>
         <attr name="thumbColorPressed" format="reference|color"/>
         <attr name="inverted" format="boolean" />
+        <attr name="isRange" format="boolean" />
     </declare-styleable>
 
 </resources>
