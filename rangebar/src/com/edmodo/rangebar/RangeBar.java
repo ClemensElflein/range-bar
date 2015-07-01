@@ -727,34 +727,8 @@ public class RangeBar extends View {
 
 			releaseThumb(mRightThumb);
 
-		} else {
-
-			float leftThumbXDistance = Math.abs(mLeftThumb.getX() - x);
-			float rightThumbXDistance = Math.abs(mRightThumb.getX() - x);
-
-			if (leftThumbXDistance < rightThumbXDistance) {
-				mLeftThumb.setX(x);
-				releaseThumb(mLeftThumb);
-			} else {
-				mRightThumb.setX(x);
-				releaseThumb(mRightThumb);
-			}
-
-	        // Get the updated nearest tick marks for each thumb.
-	        final int newLeftIndex = mBar.getNearestTickIndex(mLeftThumb);
-	        final int newRightIndex = mBar.getNearestTickIndex(mRightThumb);
-
-	        // If either of the indices have changed, update and call the listener.
-	        if (newLeftIndex != mLeftIndex || newRightIndex != mRightIndex) {
-
-	            mLeftIndex = newLeftIndex;
-	            mRightIndex = newRightIndex;
-
-	            if (mListener != null) {
-	                mListener.onIndexChangeListener(this, mLeftIndex, mRightIndex);
-	            }
-	        }
 		}
+        onActionMove(x);
 	}
 
     /**
@@ -763,6 +737,7 @@ public class RangeBar extends View {
      * @param x the x-coordinate of the move event
      */
     private void onActionMove(float x) {
+
 
         // Move the pressed thumb to the new x-position.
         if (mLeftThumb.isPressed()) {
