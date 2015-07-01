@@ -13,8 +13,8 @@ import android.util.TypedValue;
  */
 public class DummyThumb extends Thumb {
 
-    public DummyThumb(Context ctx, float y, int thumbColorNormal, int thumbColorPressed, float thumbRadiusDP, int thumbImageNormal, int thumbImagePressed) {
-        super(ctx, y, thumbColorNormal, thumbColorPressed, thumbRadiusDP, thumbImageNormal, thumbImagePressed);
+    public DummyThumb(RangeBar ctx, float y, int thumbColorNormal, int thumbColorPressed, float thumbRadiusDP) {
+        super(ctx, y, thumbColorNormal, thumbColorPressed, thumbRadiusDP);
     }
 
     @Override

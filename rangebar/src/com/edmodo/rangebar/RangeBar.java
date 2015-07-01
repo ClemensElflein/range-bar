@@ -47,8 +47,6 @@ public class RangeBar extends View {
     private static final float DEFAULT_BAR_WEIGHT_PX = 2;
     private static final int DEFAULT_BAR_COLOR = Color.LTGRAY;
     private static final float DEFAULT_CONNECTING_LINE_WEIGHT_PX = 4;
-    private static final int DEFAULT_THUMB_IMAGE_NORMAL = R.drawable.seek_thumb_normal;
-    private static final int DEFAULT_THUMB_IMAGE_PRESSED = R.drawable.seek_thumb_pressed;
 
     // Corresponds to android.R.color.holo_blue_light.
     private static final int DEFAULT_CONNECTING_LINE_COLOR = 0xff33b5e5;
@@ -65,8 +63,6 @@ public class RangeBar extends View {
     private int mBarColor = DEFAULT_BAR_COLOR;
     private float mConnectingLineWeight = DEFAULT_CONNECTING_LINE_WEIGHT_PX;
     private int mConnectingLineColor = DEFAULT_CONNECTING_LINE_COLOR;
-    private int mThumbImageNormal = DEFAULT_THUMB_IMAGE_NORMAL;
-    private int mThumbImagePressed = DEFAULT_THUMB_IMAGE_PRESSED;
 
     private float mThumbRadiusDP = DEFAULT_THUMB_RADIUS_DP;
     private int mThumbColorNormal = DEFAULT_THUMB_COLOR_NORMAL;
@@ -123,9 +119,6 @@ public class RangeBar extends View {
         bundle.putFloat("CONNECTING_LINE_WEIGHT", mConnectingLineWeight);
         bundle.putInt("CONNECTING_LINE_COLOR", mConnectingLineColor);
 
-        bundle.putInt("THUMB_IMAGE_NORMAL", mThumbImageNormal);
-        bundle.putInt("THUMB_IMAGE_PRESSED", mThumbImagePressed);
-
         bundle.putFloat("THUMB_RADIUS_DP", mThumbRadiusDP);
         bundle.putInt("THUMB_COLOR_NORMAL", mThumbColorNormal);
         bundle.putInt("THUMB_COLOR_PRESSED", mThumbColorPressed);
@@ -154,9 +147,6 @@ public class RangeBar extends View {
             mBarColor = bundle.getInt("BAR_COLOR");
             mConnectingLineWeight = bundle.getFloat("CONNECTING_LINE_WEIGHT");
             mConnectingLineColor = bundle.getInt("CONNECTING_LINE_COLOR");
-
-            mThumbImageNormal = bundle.getInt("THUMB_IMAGE_NORMAL");
-            mThumbImagePressed = bundle.getInt("THUMB_IMAGE_PRESSED");
 
             mThumbRadiusDP = bundle.getFloat("THUMB_RADIUS_DP");
             mThumbColorNormal = bundle.getInt("THUMB_COLOR_NORMAL");
@@ -224,29 +214,23 @@ public class RangeBar extends View {
         // Create the two thumb objects.
         final float yPos = h / 2f;
         if(mIsRange) {
-            mLeftThumb = new Thumb(ctx,
+            mLeftThumb = new Thumb(this,
                     yPos,
                     mThumbColorNormal,
                     mThumbColorPressed,
-                    mThumbRadiusDP,
-                    mThumbImageNormal,
-                    mThumbImagePressed);
+                    mThumbRadiusDP);
         } else {
-            mLeftThumb = new DummyThumb(ctx,
+            mLeftThumb = new DummyThumb(this,
                     yPos,
                     mThumbColorNormal,
                     mThumbColorPressed,
-                    mThumbRadiusDP,
-                    mThumbImageNormal,
-                    mThumbImagePressed);
+                    mThumbRadiusDP);
         }
-        mRightThumb = new Thumb(ctx,
+        mRightThumb = new Thumb(this,
                                 yPos,
                                 mThumbColorNormal,
                                 mThumbColorPressed,
-                                mThumbRadiusDP,
-                                mThumbImageNormal,
-                                mThumbImagePressed);
+                                mThumbRadiusDP);
 
         // Create the underlying bar.
         final float marginLeft = mLeftThumb.getHalfWidth();
@@ -284,13 +268,13 @@ public class RangeBar extends View {
         mBar.draw(canvas);
 
         if(mInverted && mIsRange) {
-            mConnectingLine.draw(canvas, getLeft(), mLeftThumb);
+            mConnectingLine.draw(canvas, getMarginLeft(), mLeftThumb);
             mConnectingLine.draw(canvas, mBar.getRightX(), mRightThumb);
         } else {
             if(mIsRange) {
                 mConnectingLine.draw(canvas, mLeftThumb, mRightThumb);
             } else {
-                mConnectingLine.draw(canvas, getLeft(), mRightThumb);
+                mConnectingLine.draw(canvas, getMarginLeft(), mRightThumb);
             }
         }
         mLeftThumb.draw(canvas);
@@ -450,29 +434,6 @@ public class RangeBar extends View {
     }
 
     /**
-     * Sets the normal thumb picture by taking in a reference ID to an image.
-     * 
-     * @param thumbNormalID Integer specifying the resource ID of the image to
-     *            be drawn as the normal thumb.
-     */
-    public void setThumbImageNormal(int thumbImageNormalID) {
-        mThumbImageNormal = thumbImageNormalID;
-        createThumbs();
-    }
-
-    /**
-     * Sets the pressed thumb picture by taking in a reference ID to an image.
-     * 
-     * @param pressedThumbID Integer specifying the resource ID of the image to
-     *            be drawn as the pressed thumb.
-     */
-    public void setThumbImagePressed(int thumbImagePressedID)
-    {
-        mThumbImagePressed = thumbImagePressedID;
-        createThumbs();
-    }
-
-    /**
      * If this is set, the thumb images will be replaced with a circle. The
      * normal image will be of the specified color.
      * 
@@ -593,10 +554,6 @@ public class RangeBar extends View {
             mConnectingLineColor = ta.getColor(R.styleable.RangeBar_connectingLineColor,
                     DEFAULT_CONNECTING_LINE_COLOR);
             mThumbRadiusDP = ta.getDimension(R.styleable.RangeBar_thumbRadius, DEFAULT_THUMB_RADIUS_DP);
-            mThumbImageNormal = ta.getResourceId(R.styleable.RangeBar_thumbImageNormal,
-                    DEFAULT_THUMB_IMAGE_NORMAL);
-            mThumbImagePressed = ta.getResourceId(R.styleable.RangeBar_thumbImagePressed,
-                                                  DEFAULT_THUMB_IMAGE_PRESSED);
             mThumbColorNormal = ta.getColor(R.styleable.RangeBar_thumbColorNormal, DEFAULT_THUMB_COLOR_NORMAL);
             mThumbColorPressed = ta.getColor(R.styleable.RangeBar_thumbColorPressed,
                                              DEFAULT_THUMB_COLOR_PRESSED);
@@ -654,29 +611,23 @@ public class RangeBar extends View {
         float yPos = getYPos();
 
         if(mIsRange) {
-            mLeftThumb = new Thumb(ctx,
+            mLeftThumb = new Thumb(this,
                     yPos,
                     mThumbColorNormal,
                     mThumbColorPressed,
-                    mThumbRadiusDP,
-                    mThumbImageNormal,
-                    mThumbImagePressed);
+                    mThumbRadiusDP);
         } else {
-            mLeftThumb = new DummyThumb(ctx,
+            mLeftThumb = new DummyThumb(this,
                     yPos,
                     mThumbColorNormal,
                     mThumbColorPressed,
-                    mThumbRadiusDP,
-                    mThumbImageNormal,
-                    mThumbImagePressed);
+                    mThumbRadiusDP);
         }
-        mRightThumb = new Thumb(ctx,
+        mRightThumb = new Thumb(this,
                                 yPos,
                                 mThumbColorNormal,
                                 mThumbColorPressed,
-                                mThumbRadiusDP,
-                                mThumbImageNormal,
-                                mThumbImagePressed);
+                                mThumbRadiusDP);
 
         float marginLeft = getMarginLeft();
         float barLength = getBarLength();

@@ -13,13 +13,16 @@
 
 package com.edmodo.rangebar;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.util.Range;
 import android.util.TypedValue;
+import android.view.animation.AccelerateDecelerateInterpolator;
 
 /**
  * Represents a thumb in the RangeBar slider. This is the handle for the slider
@@ -36,7 +39,7 @@ class Thumb {
 
     // Sets the default values for radius, normal, pressed if circle is to be
     // drawn but no value is given.
-    private static final float DEFAULT_THUMB_RADIUS_DP = 14;
+    private static final float DEFAULT_THUMB_RADIUS_DP = 9;
 
     // Corresponds to android.R.color.holo_blue_light.
     private static final int DEFAULT_THUMB_COLOR_NORMAL = 0xff33b5e5;
@@ -47,16 +50,12 @@ class Thumb {
     // Radius (in pixels) of the touch area of the thumb.
     private final float mTargetRadiusPx;
 
-    // The normal and pressed images to display for the thumbs.
-    private final Bitmap mImageNormal;
-    private final Bitmap mImagePressed;
 
     // Variables to store half the width/height for easier calculation.
     private final float mHalfWidthNormal;
-    private final float mHalfHeightNormal;
 
     private final float mHalfWidthPressed;
-    private final float mHalfHeightPressed;
+    private final RangeBar bar;
 
     // Indicates whether this thumb is currently pressed and active.
     private boolean mIsPressed = false;
@@ -74,73 +73,64 @@ class Thumb {
     // Radius of the new thumb if selected
     private float mThumbRadiusPx;
 
-    // Toggle to select bitmap thumbImage or not
-    private boolean mUseBitmap;
-
     // Colors of the thumbs if they are to be drawn
     private int mThumbColorNormal;
     private int mThumbColorPressed;
 
+    private ValueAnimator currentAnimator = null;
+    private ValueAnimator.AnimatorUpdateListener animatorListener = new ValueAnimator.AnimatorUpdateListener() {
+        @Override
+        public void onAnimationUpdate(ValueAnimator valueAnimator) {
+            mThumbRadiusPx = (Float)valueAnimator.getAnimatedValue();
+            bar.invalidate();
+        }
+    };
+
     // Constructors ////////////////////////////////////////////////////////////
 
-    Thumb(Context ctx,
+    Thumb(RangeBar bar,
           float y,
           int thumbColorNormal,
           int thumbColorPressed,
-          float thumbRadiusDP,
-          int thumbImageNormal,
-          int thumbImagePressed) {
+          float thumbRadiusDP) {
 
-        final Resources res = ctx.getResources();
+        final Resources res = bar.getContext().getResources();
 
-        mImageNormal = BitmapFactory.decodeResource(res, thumbImageNormal);
-        mImagePressed = BitmapFactory.decodeResource(res, thumbImagePressed);
+        this.bar = bar;
 
-        // If any of the attributes are set, toggle bitmap off
-        if (thumbRadiusDP == -1 && thumbColorNormal == -1 && thumbColorPressed == -1) {
+        // If one of the attributes are set, but the others aren't, set the
+        // attributes to default
+        if (thumbRadiusDP == -1)
+            mThumbRadiusPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                       DEFAULT_THUMB_RADIUS_DP,
+                                                       res.getDisplayMetrics());
+        else
+            mThumbRadiusPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                                       thumbRadiusDP,
+                                                       res.getDisplayMetrics());
 
-            mUseBitmap = true;
+        if (thumbColorNormal == -1)
+            mThumbColorNormal = DEFAULT_THUMB_COLOR_NORMAL;
+        else
+            mThumbColorNormal = thumbColorNormal;
 
-        } else {
+        if (thumbColorPressed == -1)
+            mThumbColorPressed = DEFAULT_THUMB_COLOR_PRESSED;
+        else
+            mThumbColorPressed = thumbColorPressed;
 
-            mUseBitmap = false;
+        // Creates the paint and sets the Paint values
+        mPaintNormal = new Paint();
+        mPaintNormal.setColor(mThumbColorNormal);
+        mPaintNormal.setAntiAlias(true);
 
-            // If one of the attributes are set, but the others aren't, set the
-            // attributes to default
-            if (thumbRadiusDP == -1)
-                mThumbRadiusPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                                                           DEFAULT_THUMB_RADIUS_DP,
-                                                           res.getDisplayMetrics());
-            else
-                mThumbRadiusPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                                                           thumbRadiusDP,
-                                                           res.getDisplayMetrics());
+        mPaintPressed = new Paint();
+        mPaintPressed.setColor(mThumbColorPressed);
+        mPaintPressed.setAntiAlias(true);
 
-            if (thumbColorNormal == -1)
-                mThumbColorNormal = DEFAULT_THUMB_COLOR_NORMAL;
-            else
-                mThumbColorNormal = thumbColorNormal;
+        mHalfWidthNormal = mThumbRadiusPx;
 
-            if (thumbColorPressed == -1)
-                mThumbColorPressed = DEFAULT_THUMB_COLOR_PRESSED;
-            else
-                mThumbColorPressed = thumbColorPressed;
-
-            // Creates the paint and sets the Paint values
-            mPaintNormal = new Paint();
-            mPaintNormal.setColor(mThumbColorNormal);
-            mPaintNormal.setAntiAlias(true);
-
-            mPaintPressed = new Paint();
-            mPaintPressed.setColor(mThumbColorPressed);
-            mPaintPressed.setAntiAlias(true);
-        }
-
-        mHalfWidthNormal = mImageNormal.getWidth() / 2f;
-        mHalfHeightNormal = mImageNormal.getHeight() / 2f;
-
-        mHalfWidthPressed = mImagePressed.getWidth() / 2f;
-        mHalfHeightPressed = mImagePressed.getHeight() / 2f;
+        mHalfWidthPressed = mThumbRadiusPx * 1.5f;
 
         // Sets the minimum touchable area, but allows it to expand based on
         // image size
@@ -160,10 +150,6 @@ class Thumb {
         return mHalfWidthNormal;
     }
 
-    float getHalfHeight() {
-        return mHalfHeightNormal;
-    }
-
     void setX(float x) {
         mX = x;
     }
@@ -178,10 +164,24 @@ class Thumb {
 
     void press() {
         mIsPressed = true;
+        if(currentAnimator != null) {
+            currentAnimator.cancel();
+        }
+        currentAnimator = ValueAnimator.ofFloat(mThumbRadiusPx, mHalfWidthPressed).setDuration(150);
+        currentAnimator.addUpdateListener(animatorListener);
+        currentAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        currentAnimator.start();
     }
 
     void release() {
         mIsPressed = false;
+        if(currentAnimator != null) {
+            currentAnimator.cancel();
+        }
+        currentAnimator = ValueAnimator.ofFloat(mThumbRadiusPx, mHalfWidthNormal).setDuration(150);
+        currentAnimator.addUpdateListener(animatorListener);
+        currentAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        currentAnimator.start();
     }
 
     /**
@@ -208,29 +208,7 @@ class Thumb {
      *            View#onDraw()}
      */
     void draw(Canvas canvas) {
-
-        // If a bitmap is to be printed. Determined by thumbRadius attribute.
-        if (mUseBitmap) {
-
-            final Bitmap bitmap = (mIsPressed) ? mImagePressed : mImageNormal;
-
-            if (mIsPressed) {
-                final float topPressed = mY - mHalfHeightPressed;
-                final float leftPressed = mX - mHalfWidthPressed;
-                canvas.drawBitmap(bitmap, leftPressed, topPressed, null);
-            } else {
-                final float topNormal = mY - mHalfHeightNormal;
-                final float leftNormal = mX - mHalfWidthNormal;
-                canvas.drawBitmap(bitmap, leftNormal, topNormal, null);
-            }
-
-        } else {
-
-            // Otherwise use a circle to display.
-            if (mIsPressed)
-                canvas.drawCircle(mX, mY, mThumbRadiusPx, mPaintPressed);
-            else
-                canvas.drawCircle(mX, mY, mThumbRadiusPx, mPaintNormal);
-        }
+        // Otherwise use a circle to display.
+        canvas.drawCircle(mX, mY, mThumbRadiusPx, mPaintPressed);
     }
 }
