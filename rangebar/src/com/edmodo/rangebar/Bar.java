@@ -152,7 +152,8 @@ class Bar {
      *            View#onDraw()}
      */
     private void drawTicks(Canvas canvas) {
-
+        if(mTickHeight <= 1)
+            return;
         // Loop through and draw each tick (except final tick).
         for (int i = 0; i < mNumSegments; i++) {
             final float x = i * mTickDistance + mLeftX;
