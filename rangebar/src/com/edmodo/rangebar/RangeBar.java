@@ -282,6 +282,8 @@ public class RangeBar extends View {
 
     }
 
+
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
@@ -806,8 +808,14 @@ public class RangeBar extends View {
 
         // If the user has moved their finger outside the range of the bar,
         // do not move the thumbs past the edge.
-        if (x < mBar.getLeftX() || x > mBar.getRightX()) {
+        if (x < mBar.getLeftX()) {
             // Do nothing.
+            thumb.setX(mBar.getLeftX());
+            invalidate();
+        } else if (x > mBar.getRightX()) {
+            // Do nothing.
+            thumb.setX(mBar.getRightX());
+            invalidate();
         } else {
             thumb.setX(x);
             invalidate();
